@@ -48,8 +48,8 @@ CPU elapsed time: 60430.7 ms
 |32768|2460.3|60438|24.56529692|faster|
 
 where:
-- **N** length of the square image's size (in pixels)
-- **speed factor** ration between CPU and GPU elapsed times (**CPU**/**GPU**)
+- **N** - length of the square image's side (in pixels)
+- **speed factor** - ratio between CPU and GPU elapsed times (**CPU**/**GPU**)
 
 ### Elapsed Time
 ![Elapsed Time](graphs/elapsed_time.png)
