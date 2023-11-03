@@ -8,6 +8,10 @@ Computes for the Mandelbrot set in the complex plane bounded by the rectangular 
 To use:
 
 [Command Prompt] HIPMandelbrot.exe [WIDTH] [HEIGHT]
+
+or
+
+[Command Prompt] HIPMandelbrot.exe [N]
 ```
 
 ## Sample Run
