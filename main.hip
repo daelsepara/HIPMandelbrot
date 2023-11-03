@@ -299,8 +299,6 @@ int main(int argc, char **argv)
         std::cerr << cpu_elapsed / gpu_elapsed << "x speedup";
     }
 
-    std::cerr << ": ";
-
     // check for errors
     int errors = 0;
 
@@ -313,7 +311,7 @@ int main(int argc, char **argv)
     }
 
 
-    std::cerr << " Errors: " << errors;
+    std::cerr << ", errors: " << errors;
 
     std::cerr << std::endl << std::endl;
 
