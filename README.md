@@ -19,15 +19,15 @@ Device: AMD Radeon RX 7800 XT
 
 Estimated GPU RAM requirements: 1073741824 bytes
 Total GPU RAM: 17163091968 bytes
-Program GPU RAM Limit: 4294967296 bytes
-sizeof(int): 4 bytes
+Program GPU RAM Limit: 8589934592 bytes
+Size of int: 4 bytes
 
 generating mandelbrot set using GPU ...
-GPU elapsed time: 5.2751 ms
+GPU elapsed time: 365.538 ms
 generating mandelbrot set using CPU ...
-CPU elapsed time: 72.8642 ms
+CPU elapsed time: 15145.6 ms
 
-Speedup: 13.8129x PASSED!
+41.4338x speedup:  Errors: 62
 ```
 
 ## To Do

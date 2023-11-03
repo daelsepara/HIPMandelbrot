@@ -48,6 +48,8 @@ void mandelbrotCPU(int* grid, const int width, const int height, const double dx
                 zx += cx;
                 
                 zy += cy;
+
+                t++;
             }
 
             // set color
@@ -94,6 +96,8 @@ __global__ void mandelbrotGPU(int* grid, const int width, const int height, cons
         zx += cx;
 
         zy += cy;
+
+        t++;
     }
 
     // set color
@@ -252,9 +256,6 @@ int main(int argc, char **argv)
     // run GPU mandelbrot generator 
     mandelbrotGPU<<<dimGrid, dimBlock, 0, 0>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
 
-    // check error
-    HIP_CHECK(hipGetLastError());
-    
     // stop recording and synchronize
     HIP_CHECK(hipEventRecord(gpustop, 0));
     
@@ -291,14 +292,14 @@ int main(int argc, char **argv)
 
     if (gpu_elapsed > cpu_elapsed)
     {
-        std::cerr << "Slowdown: " << gpu_elapsed / cpu_elapsed;
+        std::cerr << gpu_elapsed / cpu_elapsed << "x slowdown";
     }
     else
     {
-        std::cerr << "Speedup: " << cpu_elapsed / gpu_elapsed;
+        std::cerr << cpu_elapsed / gpu_elapsed << "x speedup";
     }
 
-    std::cerr << "x ";
+    std::cerr << ": ";
 
     // check for errors
     int errors = 0;
@@ -311,14 +312,8 @@ int main(int argc, char **argv)
         }
     }
 
-    if (errors != 0)
-    {
-        std::cerr << "FAILED: " << errors << " errors";
-    }
-    else
-    {
-        std::cerr << "PASSED!";
-    }
+
+    std::cerr << " Errors: " << errors;
 
     std::cerr << std::endl << std::endl;
     
@@ -330,5 +325,5 @@ int main(int argc, char **argv)
     
     free(cpugrid);
 
-    return errors;
+    return errors > 0 ? 1 : 0;
 }
