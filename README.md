@@ -9,7 +9,7 @@ To use:
 
 [Command Prompt] HIPMandelbrot.exe [WIDTH] [HEIGHT]
 ```
-1
+
 ## Sample Run
 
 ```cmd

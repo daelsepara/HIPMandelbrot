@@ -5,15 +5,7 @@
 #include <hip/hip_runtime.h>
 #include "msvc_defines.h"
 
-inline void HIP_CHECK(hipError_t status)
-{
-    if (status != hipSuccess)
-    {
-        std::cerr << "error: '" << hipGetErrorString(status) << "'(" << status << ") at " << __FILE__ << ":" << __LINE__ << std::endl << std::endl;
-        
-        exit(0);
-    }
-}
+#define HIP_CHECK(status) { if (status != hipSuccess) { std::cerr << std::endl << "error: '" << hipGetErrorString(status) << "'(" << status << ") at " << __FILE__ << ":" << __LINE__ << std::endl << std::endl; exit(0); }}
 
 __device__ double gpumag2(double zx, double zy)
 {
@@ -147,12 +139,12 @@ int main(int argc, char **argv)
     
     std::cerr << std::endl << "Device: " << std::string(devProp.name) << std::endl;
 
-    // check if there is sufficient GPU memory + 100 MB
+    // check if there is sufficient GPU memory
     size_t requiredMem = (size_t(WIDTH) * size_t(HEIGHT)) * size_t(BYTES);
 
     size_t totalMem = devProp.totalGlobalMem;
 
-    size_t memLimit = size_t(size_t(32768) * size_t(32768) * size_t(BYTES));
+    size_t memLimit = size_t(size_t(32768) * size_t(65536) * size_t(BYTES));
 
     std::cerr << std::endl;
 
@@ -162,24 +154,24 @@ int main(int argc, char **argv)
 
     std::cerr << "Program GPU RAM Limit: " << memLimit << " bytes" << std::endl;
 
-    std::cerr << "sizeof(int): " << BYTES << " bytes" << std::endl;
+    std::cerr << "Size of int: " << BYTES << " bytes" << std::endl;
 
-    if (requiredMem >= memLimit || requiredMem > totalMem)
+    if (requiredMem >= memLimit || requiredMem >= totalMem)
     {
-        std::cerr << "Unable to run this test!" << std::endl;
+        std::cerr << std::endl << "Unable to run this test!" << std::endl << std::endl;
 
         exit(1);
     }
 
     // complex plane (dimensions and array placeholder)
-    int* gputemp = 0;
+    int* gputemp = NULL;
     
-    int* gpugrid = 0;
+    int* gpugrid = NULL;
     
-    int* cpugrid = 0;
+    int* cpugrid = NULL;
 
     // gpu run configuration
-    const uint32_t NUM = WIDTH * HEIGHT;
+    const size_t NUM = WIDTH * HEIGHT;
     
     const uint32_t THREADS_PER_BLOCK_X = 4;
     
@@ -201,6 +193,23 @@ int main(int argc, char **argv)
     cpugrid = (int*)malloc(NUM * BYTES);
 
     gpugrid = (int*)malloc(NUM * BYTES);
+
+    if (cpugrid == NULL || gpugrid == NULL)
+    {
+        std::cerr << "Unable to allocate RAM on host!" << std::endl;
+
+        if (cpugrid != NULL)
+        {
+            free(cpugrid);
+        }
+
+        if (gpugrid != NULL)
+        {
+            free(gpugrid);
+        }
+
+        exit(1);
+    }
 
     // initialize the input data
     for (uint32_t i = 0; i < NUM; ++i)
@@ -241,7 +250,10 @@ int main(int argc, char **argv)
     HIP_CHECK(hipEventRecord(gpuinit, 0));
     
     // run GPU mandelbrot generator 
-    mandelbrotGPU<<<dimGrid, dimBlock, 0, 0>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);    
+    mandelbrotGPU<<<dimGrid, dimBlock, 0, 0>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
+
+    // check error
+    HIP_CHECK(hipGetLastError());
     
     // stop recording and synchronize
     HIP_CHECK(hipEventRecord(gpustop, 0));
