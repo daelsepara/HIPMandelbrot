@@ -25,28 +25,28 @@ void mandelbrotCPU(int* grid, const int width, const int height, const double dx
         {
             // initialize color
             int t = 0;
-            
+
             // calculate cx, cy coordinate on complex plane
             double cx = -2.0 + (double)(x) * dx;
-            
+
             double cy = -2.0 + (double)(height - y - 1) * dy;
-            
+
             // initialize pixel
             double zx = 0.0;
-            
+
             double zy = 0.0;
-            
+
             // generate escape time fractal
             while (cpumag2(zx, zy) <= escape_value && (t < max_iter))
             {
                 double xtemp = zx * zx - zy * zy;
-                
+
                 zy = (zx + zx) * zy;
-                
+
                 zx = xtemp;
-                
+
                 zx += cx;
-                
+
                 zy += cy;
 
                 t++;
@@ -68,22 +68,22 @@ __global__ void mandelbrotGPU(int* grid, const int width, const int height, cons
 {
     // get exact location in array
     int x = blockDim.x * blockIdx.x + threadIdx.x;
-    
+
     int y = blockDim.y * blockIdx.y + threadIdx.y;
 
     // initialize color
     int t = 0;
-    
+
     // calculate cx,cy coordinate on complex plane
     double cx = -2.0 + (double)(x) * dx;
-    
+
     double cy = -2.0 + (double)(height - y - 1) * dy;
-    
+
     // initialize pixel
     double zx = 0.0;
-    
+
     double zy = 0.0;
-    
+
     // generate escape time fractal
     while (t < max_iter && gpumag2(zx, zy) <= escape_value)
     {
@@ -112,7 +112,7 @@ __global__ void mandelbrotGPU(int* grid, const int width, const int height, cons
 int main(int argc, char **argv)
 {
     int WIDTH = 2048;
-    
+
     int HEIGHT = 2048;
 
     int BYTES = sizeof(int);
@@ -140,7 +140,7 @@ int main(int argc, char **argv)
     hipDeviceProp_t devProp;
 
     HIP_CHECK(hipGetDeviceProperties(&devProp, 0));
-    
+
     std::cerr << std::endl << "Device: " << std::string(devProp.name) << std::endl;
 
     // check if there is sufficient GPU memory
@@ -169,26 +169,26 @@ int main(int argc, char **argv)
 
     // complex plane (dimensions and array placeholder)
     int* gputemp = NULL;
-    
+
     int* gpugrid = NULL;
-    
+
     int* cpugrid = NULL;
 
     // gpu run configuration
     const size_t NUM = WIDTH * HEIGHT;
-    
+
     const uint32_t THREADS_PER_BLOCK_X = 4;
-    
+
     const uint32_t THREADS_PER_BLOCK_Y = 4;
-    
+
     const uint32_t THREADS_PER_BLOCK_Z = 1;
-    
+
     const uint32_t GRID_X = uint32_t(WIDTH / THREADS_PER_BLOCK_X);
-    
+
     const uint32_t GRID_Y = uint32_t(HEIGHT / THREADS_PER_BLOCK_Y);
-    
+
     dim3 dimGrid(GRID_X, GRID_Y);
-    
+
     dim3 dimBlock(THREADS_PER_BLOCK_X, THREADS_PER_BLOCK_Y, THREADS_PER_BLOCK_Z);
 
     // allocate memory on GPU and CPU
@@ -226,66 +226,66 @@ int main(int argc, char **argv)
 
     // mandelbrot paramemters
     double dx = 4.0 / (double)WIDTH;
-    
+
     double dy = 4.0 / (double)HEIGHT;
-    
+
     double escape_value = 4.0;
-    
+
     int max_iter = 255;
 
     std::cerr << std::endl;
 
     // generate mandelbrot using GPU
     std::cerr << "generating mandelbrot set using GPU ..." << std::endl;
-    
+
     // elapsed time
     float gpu_elapsed = 0.0;
-    
+
     // create gpu kernel start and stop events
     hipEvent_t gpuinit;
-    
+
     hipEvent_t gpustop;
-    
+
     HIP_CHECK(hipEventCreate(&gpuinit));
-    
+
     HIP_CHECK(hipEventCreate(&gpustop));
-    
+
     // start recording
     HIP_CHECK(hipEventRecord(gpuinit, 0));
-    
-    // run GPU mandelbrot generator 
+
+    // run GPU mandelbrot generator
     mandelbrotGPU<<<dimGrid, dimBlock, 0, 0>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
 
     // stop recording and synchronize
     HIP_CHECK(hipEventRecord(gpustop, 0));
-    
-    HIP_CHECK(hipEventSynchronize(gpustop));    
-    
+
+    HIP_CHECK(hipEventSynchronize(gpustop));
+
     // compute GPU elapsed time
     HIP_CHECK(hipEventElapsedTime(&gpu_elapsed, gpuinit, gpustop));
-    
+
     std::cerr << "GPU elapsed time: " << gpu_elapsed << " ms" << std::endl;
-    
+
     // copy results from GPU (NOTE: overall GPU performance should include data transfer elapsed times)
     HIP_CHECK(hipMemcpy(gpugrid, gputemp, NUM * BYTES, hipMemcpyDeviceToHost));
-    
+
     // Use system clock for CPU mandelbrot generator
     using clock = std::chrono::system_clock;
 
-    // use millisecond resolution    
+    // use millisecond resolution
     using msec = std::chrono::duration<double, std::milli>;
-    
+
     std::cerr << "generating mandelbrot set using CPU ..." << std::endl;
-    
+
     // start recording
     std::chrono::time_point<std::chrono::system_clock> cpuinit = clock::now();
-    
+
     // run CPU mandelbrot generator
     mandelbrotCPU(cpugrid, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
-    
+
     // compute CPU elapsed time
     double cpu_elapsed = ((msec)(clock::now() - cpuinit)).count();
-    
+
     std::cerr << "CPU elapsed time: " << cpu_elapsed << " ms" << std::endl;
 
     std::cerr << std::endl;
@@ -316,13 +316,13 @@ int main(int argc, char **argv)
     std::cerr << " Errors: " << errors;
 
     std::cerr << std::endl << std::endl;
-    
+
     // free gpu memory
     HIP_CHECK(hipFree(gputemp));
-    
+
     // free cpu memory
     free(gpugrid);
-    
+
     free(cpugrid);
 
     return errors > 0 ? 1 : 0;

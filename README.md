@@ -13,21 +13,21 @@ To use:
 ## Sample Run
 
 ```cmd
-[Command Prompt] HIPMandelbrot.exe 16384 16384
+[Command Prompt] HIPMandelbrot.exe 32768 32768
 
 Device: AMD Radeon RX 7800 XT
 
-Estimated GPU RAM requirements: 1073741824 bytes
+Estimated GPU RAM requirements: 4294967296 bytes
 Total GPU RAM: 17163091968 bytes
 Program GPU RAM Limit: 8589934592 bytes
 Size of int: 4 bytes
 
 generating mandelbrot set using GPU ...
-GPU elapsed time: 365.538 ms
+GPU elapsed time: 1402.59 ms
 generating mandelbrot set using CPU ...
-CPU elapsed time: 15145.6 ms
+CPU elapsed time: 60535.4 ms
 
-41.4338x speedup:  Errors: 62
+43.1597x speedup:  Errors: 288
 ```
 
 ## To Do
