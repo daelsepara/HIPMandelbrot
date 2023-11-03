@@ -16,12 +16,7 @@
         }                                                                                                                                 \
     }
 
-__device__ double gpumag2(double zx, double zy)
-{
-    return zx * zx + zy * zy;
-}
-
-double cpumag2(double zx, double zy)
+__host__ __device__ double mag2(double zx, double zy)
 {
     return zx * zx + zy * zy;
 }
@@ -46,7 +41,7 @@ void mandelbrotCPU(int *grid, const int width, const int height, const double dx
             double zy = 0.0;
 
             // generate escape time fractal
-            while (cpumag2(zx, zy) <= escape_value && (t < max_iter))
+            while (mag2(zx, zy) <= escape_value && t < max_iter)
             {
                 double xtemp = zx * zx - zy * zy;
 
@@ -94,7 +89,7 @@ __global__ void mandelbrotGPU(int *grid, const int width, const int height, cons
     double zy = 0.0;
 
     // generate escape time fractal
-    while (t < max_iter && gpumag2(zx, zy) <= escape_value)
+    while (mag2(zx, zy) <= escape_value && t < max_iter)
     {
         double xtemp = zx * zx - zy * zy;
 
@@ -191,9 +186,9 @@ int main(int argc, char **argv)
     // gpu run configuration
     const size_t NUM = WIDTH * HEIGHT;
 
-    const uint32_t THREADS_PER_BLOCK_X = 4;
+    const uint32_t THREADS_PER_BLOCK_X = 8;
 
-    const uint32_t THREADS_PER_BLOCK_Y = 4;
+    const uint32_t THREADS_PER_BLOCK_Y = 8;
 
     const uint32_t THREADS_PER_BLOCK_Z = 1;
 
@@ -282,6 +277,11 @@ int main(int argc, char **argv)
     HIP_CHECK(hipEventElapsedTime(&gpu_elapsed, gpuinit, gpustop));
 
     std::cerr << "GPU elapsed time: " << gpu_elapsed << " ms" << std::endl;
+
+    // destory events
+    HIP_CHECK(hipEventDestroy(gpuinit));
+
+    HIP_CHECK(hipEventDestroy(gpustop));
 
     // Use system clock for CPU mandelbrot generator
     using clock = std::chrono::system_clock;
