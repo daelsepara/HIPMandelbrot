@@ -221,9 +221,6 @@ int main(int argc, char **argv)
         cpugrid[i] = 0;
     }
 
-    // copy data to GPU
-    HIP_CHECK(hipMemcpy(gputemp, cpugrid, NUM * BYTES, hipMemcpyHostToDevice));
-
     // mandelbrot paramemters
     double dx = 4.0 / (double)WIDTH;
 
@@ -253,8 +250,14 @@ int main(int argc, char **argv)
     // start recording
     HIP_CHECK(hipEventRecord(gpuinit, 0));
 
+    // copy data to GPU
+    HIP_CHECK(hipMemcpy(gputemp, cpugrid, NUM * BYTES, hipMemcpyHostToDevice));
+
     // run GPU mandelbrot generator
     mandelbrotGPU<<<dimGrid, dimBlock, 0, 0>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
+
+    // copy results from GPU
+    HIP_CHECK(hipMemcpy(gpugrid, gputemp, NUM * BYTES, hipMemcpyDeviceToHost));
 
     // stop recording and synchronize
     HIP_CHECK(hipEventRecord(gpustop, 0));
@@ -265,9 +268,6 @@ int main(int argc, char **argv)
     HIP_CHECK(hipEventElapsedTime(&gpu_elapsed, gpuinit, gpustop));
 
     std::cerr << "GPU elapsed time: " << gpu_elapsed << " ms" << std::endl;
-
-    // copy results from GPU (NOTE: overall GPU performance should include data transfer elapsed times)
-    HIP_CHECK(hipMemcpy(gpugrid, gputemp, NUM * BYTES, hipMemcpyDeviceToHost));
 
     // Use system clock for CPU mandelbrot generator
     using clock = std::chrono::system_clock;

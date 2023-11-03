@@ -23,11 +23,11 @@ Program GPU RAM Limit: 8589934592 bytes
 Size of int: 4 bytes
 
 generating mandelbrot set using GPU ...
-GPU elapsed time: 1401.35 ms
+GPU elapsed time: 2500.36 ms
 generating mandelbrot set using CPU ...
-CPU elapsed time: 60516.7 ms
+CPU elapsed time: 60430.7 ms
 
-43.1846x speedup, errors: 288
+24.1688x speedup, errors: 288
 ```
 
 ## To Do
