@@ -51,6 +51,14 @@ where:
 - **N** - length of the square image's side (in pixels)
 - **speed factor** - ratio between CPU and GPU elapsed times (**CPU**/**GPU**)
 
+**Test Machine**
+- CPU: Ryzen 5700x (8 core/16 threads)
+- 32GB 3200MT/s CL16 DDR4
+- Gigabyte B550I AORUS PRO AX rev 1.2
+- GPU: Sapphire Pulse 7800xt 16GB GDDR6
+
+## Graphs
+
 ### Elapsed Time
 ![Elapsed Time](graphs/elapsed_time.png)
 
@@ -58,6 +66,6 @@ where:
 ![Speed Comparison](graphs/speedfactor.png)
 
 ## To Do
-
 - PNG Image Output
 - User defined parameters
+- Implement other fractal generators
