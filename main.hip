@@ -5,7 +5,16 @@
 #include <hip/hip_runtime.h>
 #include "msvc_defines.h"
 
-#define HIP_CHECK(status) { if (status != hipSuccess) { std::cerr << std::endl << "error: '" << hipGetErrorString(status) << "'(" << status << ") at " << __FILE__ << ":" << __LINE__ << std::endl << std::endl; exit(0); }}
+#define HIP_CHECK(status)                                                                                                                 \
+    {                                                                                                                                     \
+        if (status != hipSuccess)                                                                                                         \
+        {                                                                                                                                 \
+            std::cerr << std::endl                                                                                                        \
+                      << "error: '" << hipGetErrorString(status) << "'(" << status << ") at " << __FILE__ << ":" << __LINE__ << std::endl \
+                      << std::endl;                                                                                                       \
+            exit(0);                                                                                                                      \
+        }                                                                                                                                 \
+    }
 
 __device__ double gpumag2(double zx, double zy)
 {
@@ -17,7 +26,7 @@ double cpumag2(double zx, double zy)
     return zx * zx + zy * zy;
 }
 
-void mandelbrotCPU(int* grid, const int width, const int height, const double dx, const double dy, const double escape_value, const int max_iter)
+void mandelbrotCPU(int *grid, const int width, const int height, const double dx, const double dy, const double escape_value, const int max_iter)
 {
     for (int y = 0; y < height; y++)
     {
@@ -27,7 +36,7 @@ void mandelbrotCPU(int* grid, const int width, const int height, const double dx
             int t = 0;
 
             // calculate cx, cy coordinate on complex plane
-            double cx = -2.0 + (double)(x) * dx;
+            double cx = -2.0 + (double)x * dx;
 
             double cy = -2.0 + (double)(height - y - 1) * dy;
 
@@ -63,8 +72,8 @@ void mandelbrotCPU(int* grid, const int width, const int height, const double dx
     }
 }
 
-// Device (Kernel) function, it must be void
-__global__ void mandelbrotGPU(int* grid, const int width, const int height, const double dx, const double dy, const double escape_value, const int max_iter)
+// device (kernel) function, it must be void
+__global__ void mandelbrotGPU(int *grid, const int width, const int height, const double dx, const double dy, const double escape_value, const int max_iter)
 {
     // get exact location in array
     int x = blockDim.x * blockIdx.x + threadIdx.x;
@@ -74,8 +83,8 @@ __global__ void mandelbrotGPU(int* grid, const int width, const int height, cons
     // initialize color
     int t = 0;
 
-    // calculate cx,cy coordinate on complex plane
-    double cx = -2.0 + (double)(x) * dx;
+    // calculate cx, cy coordinate on complex plane
+    double cx = -2.0 + (double)x * dx;
 
     double cy = -2.0 + (double)(height - y - 1) * dy;
 
@@ -119,7 +128,9 @@ int main(int argc, char **argv)
 
     if (argc < 2)
     {
-        std::cerr << "To use:" << std::endl << std::endl << argv[0] << " [WIDTH] [HEIGHT]" << std::endl;
+        std::cerr << "To use:" << std::endl
+                  << std::endl
+                  << argv[0] << " [WIDTH] [HEIGHT]" << std::endl;
 
         exit(1);
     }
@@ -141,7 +152,8 @@ int main(int argc, char **argv)
 
     HIP_CHECK(hipGetDeviceProperties(&devProp, 0));
 
-    std::cerr << std::endl << "Device: " << std::string(devProp.name) << std::endl;
+    std::cerr << std::endl
+              << "Device: " << std::string(devProp.name) << std::endl;
 
     // check if there is sufficient GPU memory
     size_t requiredMem = (size_t(WIDTH) * size_t(HEIGHT)) * size_t(BYTES);
@@ -162,17 +174,19 @@ int main(int argc, char **argv)
 
     if (requiredMem >= memLimit || requiredMem >= totalMem)
     {
-        std::cerr << std::endl << "Unable to run this test!" << std::endl << std::endl;
+        std::cerr << std::endl
+                  << "Unable to run this test!" << std::endl
+                  << std::endl;
 
         exit(1);
     }
 
     // complex plane (dimensions and array placeholder)
-    int* gputemp = NULL;
+    int *gputemp = NULL;
 
-    int* gpugrid = NULL;
+    int *gpugrid = NULL;
 
-    int* cpugrid = NULL;
+    int *cpugrid = NULL;
 
     // gpu run configuration
     const size_t NUM = WIDTH * HEIGHT;
@@ -192,11 +206,11 @@ int main(int argc, char **argv)
     dim3 dimBlock(THREADS_PER_BLOCK_X, THREADS_PER_BLOCK_Y, THREADS_PER_BLOCK_Z);
 
     // allocate memory on GPU and CPU
-    HIP_CHECK(hipMalloc((void**)&gputemp, NUM * BYTES));
+    HIP_CHECK(hipMalloc((void **)&gputemp, NUM * BYTES));
 
-    cpugrid = (int*)malloc(NUM * BYTES);
+    cpugrid = (int *)malloc(NUM * BYTES);
 
-    gpugrid = (int*)malloc(NUM * BYTES);
+    gpugrid = (int *)malloc(NUM * BYTES);
 
     if (cpugrid == NULL || gpugrid == NULL)
     {
@@ -310,10 +324,10 @@ int main(int argc, char **argv)
         }
     }
 
-
     std::cerr << ", errors: " << errors;
 
-    std::cerr << std::endl << std::endl;
+    std::cerr << std::endl
+              << std::endl;
 
     // free gpu memory
     HIP_CHECK(hipFree(gputemp));
