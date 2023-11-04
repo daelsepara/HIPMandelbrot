@@ -41,13 +41,9 @@ __host__ __device__ int escape_time(size_t x, size_t y, const size_t height, con
     {
         double xtemp = zx * zx - zy * zy;
 
-        zy = (zx + zx) * zy;
+        zy = (zx + zx) * zy + cy;
 
-        zx = xtemp;
-
-        zx += cx;
-
-        zy += cy;
+        zx = xtemp + cx;
 
         t++;
     }
