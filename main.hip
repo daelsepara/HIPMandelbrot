@@ -21,62 +21,10 @@ __host__ __device__ double mag2(double zx, double zy)
     return zx * zx + zy * zy;
 }
 
-void mandelbrotCPU(int *grid, const int width, const int height, const double dx, const double dy, const double escape_value, const int max_iter)
+__host__ __device__ int escape_time(size_t x, size_t y, const size_t height, const double dx, const double dy, const double escape_value, const size_t max_iter)
 {
-    for (int y = 0; y < height; y++)
-    {
-        for (int x = 0; x < width; x++)
-        {
-            // initialize color
-            int t = 0;
-
-            // calculate cx, cy coordinate on complex plane
-            double cx = -2.0 + (double)x * dx;
-
-            double cy = -2.0 + (double)(height - y - 1) * dy;
-
-            // initialize pixel
-            double zx = 0.0;
-
-            double zy = 0.0;
-
-            // generate escape time fractal
-            while (mag2(zx, zy) <= escape_value && t < max_iter)
-            {
-                double xtemp = zx * zx - zy * zy;
-
-                zy = (zx + zx) * zy;
-
-                zx = xtemp;
-
-                zx += cx;
-
-                zy += cy;
-
-                t++;
-            }
-
-            // set color
-            if (t == max_iter)
-            {
-                t = 0;
-            }
-
-            grid[y * width + x] = t;
-        }
-    }
-}
-
-// device (kernel) function, it must be void
-__global__ void mandelbrotGPU(int *grid, const int width, const int height, const double dx, const double dy, const double escape_value, const int max_iter)
-{
-    // get exact location in array
-    int x = blockDim.x * blockIdx.x + threadIdx.x;
-
-    int y = blockDim.y * blockIdx.y + threadIdx.y;
-
-    // initialize color
-    int t = 0;
+    // initialize escape time
+    size_t t = 0;
 
     // calculate cx, cy coordinate on complex plane
     double cx = -2.0 + (double)x * dx;
@@ -104,22 +52,49 @@ __global__ void mandelbrotGPU(int *grid, const int width, const int height, cons
         t++;
     }
 
-    // set color
+    // set color for trapped
     if (t == max_iter)
     {
         t = 0;
     }
+
+    return t;
+}
+
+// host (kernel) function
+void mandelbrotCPU(int *grid, const size_t width, const size_t height, const double dx, const double dy, const double escape_value, const size_t max_iter)
+{
+    for (size_t y = 0; y < height; y++)
+    {
+        for (size_t x = 0; x < width; x++)
+        {
+            int t = escape_time(x, y, height, dx, dy, escape_value, max_iter);
+
+            grid[y * width + x] = t;
+        }
+    }
+}
+
+// device (kernel) function
+__global__ void mandelbrotGPU(int *grid, const size_t width, const size_t height, const double dx, const double dy, const double escape_value, const size_t max_iter)
+{
+    // get exact location in array
+    size_t x = blockDim.x * blockIdx.x + threadIdx.x;
+
+    size_t y = blockDim.y * blockIdx.y + threadIdx.y;
+
+    int t = escape_time(x, y, height, dx, dy, escape_value, max_iter);
 
     grid[y * width + x] = t;
 }
 
 int main(int argc, char **argv)
 {
-    int WIDTH = 2048;
+    size_t WIDTH = 2048;
 
-    int HEIGHT = 2048;
+    size_t HEIGHT = 2048;
 
-    int BYTES = sizeof(int);
+    size_t BYTES = sizeof(int);
 
     if (argc < 2)
     {
@@ -155,7 +130,7 @@ int main(int argc, char **argv)
 
     size_t totalMem = devProp.totalGlobalMem;
 
-    size_t memLimit = size_t(size_t(32768) * size_t(65536) * size_t(BYTES));
+    size_t memLimit = size_t(size_t(32768) * size_t(65536) * BYTES);
 
     std::cerr << std::endl;
 
@@ -163,7 +138,7 @@ int main(int argc, char **argv)
 
     std::cerr << "Total GPU RAM: " << totalMem << " bytes" << std::endl;
 
-    std::cerr << "Program GPU RAM Limit: " << memLimit << " bytes" << std::endl;
+    std::cerr << "Program GPU RAM limit: " << memLimit << " bytes" << std::endl;
 
     std::cerr << "Size of int: " << BYTES << " bytes" << std::endl;
 
@@ -176,7 +151,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    // complex plane (dimensions and array placeholder)
+    // complex plane (array placeholders)
     int *gputemp = NULL;
 
     int *gpugrid = NULL;
@@ -186,22 +161,22 @@ int main(int argc, char **argv)
     // gpu run configuration
     const size_t NUM = WIDTH * HEIGHT;
 
-    const uint32_t THREADS_PER_BLOCK_X = 8;
+    const size_t THREADS_PER_BLOCK_X = 16;
 
-    const uint32_t THREADS_PER_BLOCK_Y = 8;
+    const size_t THREADS_PER_BLOCK_Y = 16;
 
-    const uint32_t THREADS_PER_BLOCK_Z = 1;
+    const size_t THREADS_PER_BLOCK_Z = 1;
 
-    const uint32_t GRID_X = uint32_t(WIDTH / THREADS_PER_BLOCK_X);
+    const size_t GRID_X = WIDTH / THREADS_PER_BLOCK_X;
 
-    const uint32_t GRID_Y = uint32_t(HEIGHT / THREADS_PER_BLOCK_Y);
+    const size_t GRID_Y = HEIGHT / THREADS_PER_BLOCK_Y;
 
     dim3 dimGrid(GRID_X, GRID_Y);
 
     dim3 dimBlock(THREADS_PER_BLOCK_X, THREADS_PER_BLOCK_Y, THREADS_PER_BLOCK_Z);
 
     // allocate memory on GPU and CPU
-    HIP_CHECK(hipMalloc((void **)&gputemp, NUM * BYTES));
+    HIP_CHECK(hipMalloc((void **)&gputemp, size_t(NUM * BYTES)));
 
     cpugrid = (int *)malloc(NUM * BYTES);
 
@@ -225,7 +200,7 @@ int main(int argc, char **argv)
     }
 
     // initialize the input data
-    for (uint32_t i = 0; i < NUM; ++i)
+    for (size_t i = 0; i < NUM; ++i)
     {
         cpugrid[i] = 0;
     }
@@ -237,7 +212,7 @@ int main(int argc, char **argv)
 
     double escape_value = 4.0;
 
-    int max_iter = 255;
+    size_t max_iter = 255;
 
     std::cerr << std::endl;
 
@@ -263,7 +238,7 @@ int main(int argc, char **argv)
     HIP_CHECK(hipMemcpy(gputemp, cpugrid, NUM * BYTES, hipMemcpyHostToDevice));
 
     // run GPU mandelbrot generator
-    mandelbrotGPU<<<dimGrid, dimBlock, 0, 0>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
+    mandelbrotGPU<<<dimGrid, dimBlock>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
 
     // copy results from GPU
     HIP_CHECK(hipMemcpy(gpugrid, gputemp, NUM * BYTES, hipMemcpyDeviceToHost));
@@ -304,6 +279,17 @@ int main(int argc, char **argv)
 
     std::cerr << std::endl;
 
+    // check for differences
+    size_t diff = 0;
+
+    for (size_t i = 0; i < NUM; ++i)
+    {
+        if (std::abs(gpugrid[i] - cpugrid[i]) != 0)
+        {
+            diff++;
+        }
+    }
+
     if (gpu_elapsed > cpu_elapsed)
     {
         std::cerr << gpu_elapsed / cpu_elapsed << "x slowdown";
@@ -313,18 +299,7 @@ int main(int argc, char **argv)
         std::cerr << cpu_elapsed / gpu_elapsed << "x speedup";
     }
 
-    // check for errors
-    int errors = 0;
-
-    for (uint32_t i = 0; i < NUM; ++i)
-    {
-        if (std::abs(gpugrid[i] - cpugrid[i]) > 0)
-        {
-            errors++;
-        }
-    }
-
-    std::cerr << ", errors: " << errors;
+    std::cerr << ", diff: " << diff;
 
     std::cerr << std::endl
               << std::endl;
@@ -337,5 +312,5 @@ int main(int argc, char **argv)
 
     free(cpugrid);
 
-    return errors > 0 ? 1 : 0;
+    return diff > 0 ? 1 : 0;
 }

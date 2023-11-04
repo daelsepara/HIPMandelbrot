@@ -23,33 +23,33 @@ Device: AMD Radeon RX 7800 XT
 
 Estimated GPU RAM requirements: 4294967296 bytes
 Total GPU RAM: 17163091968 bytes
-Program GPU RAM Limit: 8589934592 bytes
+Program GPU RAM limit: 8589934592 bytes
 Size of int: 4 bytes
 
 generating mandelbrot set using GPU ...
-GPU elapsed time: 1931.32 ms
+GPU elapsed time: 1903.98 ms
 generating mandelbrot set using CPU ...
-CPU elapsed time: 60691.2 ms
+CPU elapsed time: 61218.6 ms
 
-31.4247x speedup, errors: 288
+32.153x speedup, diff: 288
 ```
 
 ## Benchmarks
 
 |N|GPU (ms)|CPU (ms)|speed factor|status|
 |-|--------|--------|------------|------|
-|16|1.4611|0.024|0.01642598043|slower|
-|32|1.4162|0.0687|0.04851009744|slower|
-|64|1.5048|0.2563|0.1703216374|slower|
-|128|1.482|0.9973|0.6729419703|slower|
-|256|1.732|3.8892|2.245496536|faster|
-|512|2.2863|15.1371|6.620784674|faster|
-|1024|3.2607|59.7921|18.33719753|faster|
-|2048|8.7413|238.792|27.31767586|faster|
-|4096|29.7729|949.678|31.89739663|faster|
-|8192|121.111|3791.4|31.30516634|faster|
-|16384|476.03|15152.9|31.83181732|faster|
-|32768|1931.32|60691.2|31.42472506|faster|
+|16|1.4344|0.024|0.0199|slower|
+|32|1.5457|0.0865|0.0559617002|slower|
+|64|1.5693|0.3231|0.2058879755|slower|
+|128|1.5188|1.1664|0.7679747169|slower|
+|256|1.9443|4.247|2.184333693|faster|
+|512|2.6105|15.6552|5.997012067|faster|
+|1024|3.4076|63.2497|18.56136284|faster|
+|2048|8.6175|243.014|28.20005802|faster|
+|4096|28.2254|962.061|34.08493768|faster|
+|8192|124.929|3839.13|30.73049492|faster|
+|16384|483.53|15327.6|31.69937749|faster|
+|32768|1903.98|61218.6|32.15296379|faster|
 
 where:
 - **N** - length of the square image's side (in pixels)
