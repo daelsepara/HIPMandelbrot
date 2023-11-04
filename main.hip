@@ -58,7 +58,7 @@ __host__ __device__ int escape_time(size_t x, size_t y, const size_t height, con
         t = 0;
     }
 
-    return t;
+    return (int)t;
 }
 
 // host (kernel) function
