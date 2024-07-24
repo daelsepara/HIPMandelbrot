@@ -4,7 +4,6 @@
 #include <string>
 
 #include <hip/hip_runtime.h>
-#include "msvc_defines.h"
 
 #define HIP_CHECK(status)                                                                                                                 \
     {                                                                                                                                     \
@@ -258,7 +257,12 @@ int main(int argc, char **argv)
     HIP_CHECK(hipMemcpy(gputemp, gpugrid, NUM * BYTES, hipMemcpyHostToDevice));
 
     // run GPU mandelbrot generator
-    mandelbrotGPU<<<dimGrid, dimBlock>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
+    
+    // chevron <<<>>> launch method
+    // mandelbrotGPU<<<dimGrid, dimBlock>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
+    
+    // preferred launch method
+    hipLaunchKernelGGL(mandelbrotGPU, dimGrid, dimBlock, 0, 0, gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
 
     // copy results from GPU
     HIP_CHECK(hipMemcpy(gpugrid, gputemp, NUM * BYTES, hipMemcpyDeviceToHost));

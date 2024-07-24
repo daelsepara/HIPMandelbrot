@@ -37,3 +37,4 @@
 *.user
 Release/*
 Debug/*
+HIPMandelbrot.log
