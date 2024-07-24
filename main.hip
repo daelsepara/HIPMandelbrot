@@ -342,13 +342,24 @@ int main(int argc, char **argv)
             0x0b, 0x10, 0x0b, 0x0b, 0x10, 0x0c, 0x0b, 0x10, 0x0d, 0x0b, 0x10, 0x0f, 0x0b, 0x10, 0x10, 0x0b, 0x0f, 0x10, 0x0b, 0x0d, 0x10, 0x0b, 0x0c, 0x10,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-    if (WIDTH * HEIGHT <= 8192 * 8192)
+    if (WIDTH * HEIGHT <= 16384 * 16384)
     {
+#ifdef __GRAY__
+        std::cerr << "saving GPU image to mandelbrot.pgm ..." << std::endl;
+
+        std::ofstream ofs("mandelbrot.pgm");
+#else
         std::cerr << "saving GPU image to mandelbrot.ppm ..." << std::endl;
 
         std::ofstream ofs("mandelbrot.ppm");
+#endif
 
+// gray scale
+#ifdef __GRAY__
+        ofs << "P2" << std::endl
+#else
         ofs << "P6" << std::endl
+#endif
             << WIDTH << ' ' << HEIGHT << std::endl
             << "255" << std::endl;
 
@@ -356,14 +367,17 @@ int main(int argc, char **argv)
         {
             for (size_t i = 0; i < WIDTH; ++i)
             {
-                int index = (int)gpugrid[j * WIDTH + i] % 256 * 3;
+#ifdef __GRAY__
+                ofs << gpugrid[j * WIDTH + i] % 256 * brightness << ' ';
+#else
+                int index = gpugrid[j * WIDTH + i] % 256 * 3;
 
-                
-                char r = (char)((int)colors[index] * brightness % 256);
-                char g = (char)((int)colors[index + 1] * brightness % 256);
-                char b = (char)((int)colors[index + 2] * brightness % 256);
-                
+                char r = (char)(colors[index] * brightness % 256);
+                char g = (char)(colors[index + 1] * brightness % 256);
+                char b = (char)(colors[index + 2] * brightness % 256);
+
                 ofs << (char)g << (char)b << (char)r;
+#endif
             }
         }
 
