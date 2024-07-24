@@ -342,13 +342,13 @@ int main(int argc, char **argv)
             0x0b, 0x10, 0x0b, 0x0b, 0x10, 0x0c, 0x0b, 0x10, 0x0d, 0x0b, 0x10, 0x0f, 0x0b, 0x10, 0x10, 0x0b, 0x0f, 0x10, 0x0b, 0x0d, 0x10, 0x0b, 0x0c, 0x10,
             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
-    if (WIDTH * HEIGHT <= 4096 * 4096)
+    if (WIDTH * HEIGHT <= 8192 * 8192)
     {
         std::cerr << "saving GPU image to mandelbrot.ppm ..." << std::endl;
 
         std::ofstream ofs("mandelbrot.ppm");
 
-        ofs << "P3" << std::endl
+        ofs << "P6" << std::endl
             << WIDTH << ' ' << HEIGHT << std::endl
             << "255" << std::endl;
 
@@ -358,16 +358,13 @@ int main(int argc, char **argv)
             {
                 int index = (int)gpugrid[j * WIDTH + i] % 256 * 3;
 
-                int r = (int)(colors[index] * brightness);
-                int g = (int)(colors[index + 1] * brightness);
-                int b = (int)(colors[index + 2] * brightness);
-
-                ofs << r << ' ';
-                ofs << g << ' ';
-                ofs << b << ' ';
+                
+                char r = (char)((int)colors[index] * brightness % 256);
+                char g = (char)((int)colors[index + 1] * brightness % 256);
+                char b = (char)((int)colors[index + 2] * brightness % 256);
+                
+                ofs << (char)g << (char)b << (char)r;
             }
-
-            ofs << std::endl;
         }
 
         ofs.close();
