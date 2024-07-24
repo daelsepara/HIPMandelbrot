@@ -69,6 +69,14 @@ where:
 ### Speed Comparison (and baselines)
 ![Speed Comparison](graphs/speedfactor.png)
 
+### Sample output (converted from PGM and PPM to PNG)
+
+#### RGB (2048 x 2048)
+![rgb](images/mandelbrot.png)
+
+#### Gray (2048 x 2048)
+![gray](images/mandelbrot-gray.png)
+
 ## To Do
 - PNG Image Output
 - User defined parameters
