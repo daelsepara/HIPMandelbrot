@@ -305,7 +305,9 @@ int main(int argc, char **argv)
     std::cerr << std::endl
               << std::endl;
 
-    char Colors[768] =
+    int brightness = 4;
+
+    char colors[768] =
         {
             0x00, 0x00, 0x00, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x00, 0x00, 0x2a, 0x2a, 0x2a, 0x00, 0x00, 0x2a, 0x00, 0x2a, 0x2a, 0x15, 0x00, 0x2a, 0x2a, 0x2a,
             0x15, 0x15, 0x15, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x15, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x15, 0x3f, 0x15, 0x3f, 0x3f, 0x3f, 0x15, 0x3f, 0x3f, 0x3f,
@@ -355,10 +357,10 @@ int main(int argc, char **argv)
             for (int i = 0; i < WIDTH; ++i)
             {
                 int index = (int)gpugrid[j * WIDTH + i] % 256 * 3;
-                
-                int r = (int)Colors[index];
-                int g = (int)Colors[index + 1];
-                int b = (int)Colors[index + 2];
+
+                int r = (int)(colors[index] * brightness);
+                int g = (int)(colors[index + 1] * brightness);
+                int b = (int)(colors[index + 2] * brightness);
 
                 ofs << r << ' ';
                 ofs << g << ' ';
