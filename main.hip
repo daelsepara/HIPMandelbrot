@@ -82,6 +82,8 @@ __global__ void mandelbrotGPU(int *grid, const size_t width, const size_t height
     int t = escape_time(x, y, height, dx, dy, escape_value, max_iter);
 
     grid[y * width + x] = t;
+    
+    __syncthreads();
 }
 
 int main(int argc, char **argv)
