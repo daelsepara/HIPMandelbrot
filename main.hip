@@ -340,7 +340,7 @@ int main(int argc, char **argv)
 
     if (WIDTH * HEIGHT <= 4096 * 4096)
     {
-        std::cerr << "saving GPU image to mandelbrot.ppm..." << std::endl;
+        std::cerr << "saving GPU image to mandelbrot.ppm ..." << std::endl;
 
         std::ofstream ofs("mandelbrot.ppm");
 
