@@ -87,6 +87,15 @@ __global__ void mandelbrotGPU(int *grid, const size_t width, const size_t height
     __syncthreads();
 }
 
+bool check_argument(char **argv, int i, const char *param)
+{
+    std::string arg = std::string(argv[i]);
+
+    std::transform(arg.begin(), arg.end(), arg.begin(), ::toupper);
+
+    return arg == param;
+}
+
 int main(int argc, char **argv)
 {
     size_t WIDTH = 2048;
@@ -94,6 +103,8 @@ int main(int argc, char **argv)
     size_t HEIGHT = 2048;
 
     size_t BYTES = sizeof(int);
+
+    bool gray = false;
 
     if (argc < 2)
     {
@@ -109,11 +120,19 @@ int main(int argc, char **argv)
 
         HEIGHT = WIDTH;
     }
+    else if (argc < 4)
+    {
+        WIDTH = std::atoi(argv[1]);
+
+        HEIGHT = std::atoi(argv[2]);
+    }
     else
     {
         WIDTH = std::atoi(argv[1]);
 
         HEIGHT = std::atoi(argv[2]);
+
+        gray = check_argument(argv, 3, "/GRAY");
     }
 
     // get device properties
@@ -344,40 +363,51 @@ int main(int argc, char **argv)
 
     if (WIDTH * HEIGHT <= 16384 * 16384)
     {
-#ifdef __GRAY__
-        std::cerr << "saving GPU image to mandelbrot.pgm ..." << std::endl;
+        std::ofstream ofs;
 
-        std::ofstream ofs("mandelbrot.pgm");
-#else
-        std::cerr << "saving GPU image to mandelbrot.ppm ..." << std::endl;
+        if (gray)
+        {
+            std::cerr << "saving GPU image to mandelbrot.pgm ..." << std::endl;
 
-        std::ofstream ofs("mandelbrot.ppm");
-#endif
+            ofs = std::ofstream("mandelbrot.pgm");
+        }
+        else
+        {
+            std::cerr << "saving GPU image to mandelbrot.ppm ..." << std::endl;
 
-// gray scale
-#ifdef __GRAY__
-        ofs << "P2" << std::endl
-#else
-        ofs << "P6" << std::endl
-#endif
-            << WIDTH << ' ' << HEIGHT << std::endl
+            ofs = std::ofstream("mandelbrot.ppm");
+        }
+
+        if (gray)
+        {
+            ofs << "P2" << std::endl;
+        }
+        else
+        {
+            ofs << "P6" << std::endl;
+        }
+
+        ofs << WIDTH << ' ' << HEIGHT << std::endl
             << "255" << std::endl;
 
         for (size_t j = 0; j < HEIGHT; ++j)
         {
             for (size_t i = 0; i < WIDTH; ++i)
             {
-#ifdef __GRAY__
-                ofs << gpugrid[j * WIDTH + i] % 256 * brightness << ' ';
-#else
-                int index = gpugrid[j * WIDTH + i] % 256 * 3;
+                if (gray)
+                {
+                    ofs << gpugrid[j * WIDTH + i] % 256 * brightness << ' ';
+                }
+                else
+                {
+                    int index = gpugrid[j * WIDTH + i] % 256 * 3;
 
-                char r = (char)(colors[index] * brightness % 256);
-                char g = (char)(colors[index + 1] * brightness % 256);
-                char b = (char)(colors[index + 2] * brightness % 256);
+                    char r = (char)(colors[index] * brightness % 256);
+                    char g = (char)(colors[index + 1] * brightness % 256);
+                    char b = (char)(colors[index + 2] * brightness % 256);
 
-                ofs << (char)g << (char)b << (char)r;
-#endif
+                    ofs << (char)g << (char)b << (char)r;
+                }
             }
         }
 
