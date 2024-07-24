@@ -202,6 +202,8 @@ int main(int argc, char **argv)
     for (size_t i = 0; i < NUM; ++i)
     {
         cpugrid[i] = 0;
+
+        gpugrid[i] = 0;
     }
 
     // mandelbrot paramemters
@@ -234,7 +236,7 @@ int main(int argc, char **argv)
     HIP_CHECK(hipEventRecord(gpuinit, 0));
 
     // copy data to GPU
-    HIP_CHECK(hipMemcpy(gputemp, cpugrid, NUM * BYTES, hipMemcpyHostToDevice));
+    HIP_CHECK(hipMemcpy(gputemp, gpugrid, NUM * BYTES, hipMemcpyHostToDevice));
 
     // run GPU mandelbrot generator
     mandelbrotGPU<<<dimGrid, dimBlock>>>(gputemp, WIDTH, HEIGHT, dx, dy, escape_value, max_iter);
@@ -352,11 +354,18 @@ int main(int argc, char **argv)
         {
             for (int i = 0; i < WIDTH; ++i)
             {
-                int index = (int)gpugrid[j * WIDTH + i] % 256;
-                ofs << ((int)Colors[index * 3]) << ' ';
-                ofs << ((int)Colors[index * 3 + 1]) << ' ';
-                ofs << ((int)Colors[index * 3 + 2]) << ' ';
+                int index = (int)gpugrid[j * WIDTH + i] % 256 * 3;
+                
+                int r = (int)Colors[index];
+                int g = (int)Colors[index + 1];
+                int b = (int)Colors[index + 2];
+
+                ofs << r << ' ';
+                ofs << g << ' ';
+                ofs << b << ' ';
             }
+
+            ofs << std::endl;
         }
 
         ofs.close();
