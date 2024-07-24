@@ -352,9 +352,9 @@ int main(int argc, char **argv)
             << WIDTH << ' ' << HEIGHT << std::endl
             << "255" << std::endl;
 
-        for (int j = 0; j < HEIGHT; ++j)
+        for (size_t j = 0; j < HEIGHT; ++j)
         {
-            for (int i = 0; i < WIDTH; ++i)
+            for (size_t i = 0; i < WIDTH; ++i)
             {
                 int index = (int)gpugrid[j * WIDTH + i] % 256 * 3;
 
