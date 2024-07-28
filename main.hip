@@ -1,4 +1,5 @@
 ﻿#include <chrono>
+#include <cstring>
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -300,12 +301,9 @@ int main(int argc, char **argv)
     }
 
     // initialize the input data
-    for (size_t i = 0; i < NUM; ++i)
-    {
-        cpugrid[i] = 0;
+    std::memset(cpugrid, 0, NUM * BYTES);
 
-        gpugrid[i] = 0;
-    }
+    std::memset(gpugrid, 0, NUM * BYTES);
 
     // mandelbrot paramemters
     double dx = 4.0 / (double)WIDTH;
