@@ -253,11 +253,11 @@ int main(int argc, char **argv)
     }
 
     // complex plane (array placeholders)
-    int *gputemp = NULL;
+    int *gputemp = nullptr;
 
-    int *gpugrid = NULL;
+    int *gpugrid = nullptr;
 
-    int *cpugrid = NULL;
+    int *cpugrid = nullptr;
 
     // gpu run configuration
     const size_t NUM = WIDTH * HEIGHT;
@@ -283,16 +283,16 @@ int main(int argc, char **argv)
 
     gpugrid = (int *)malloc(NUM * BYTES);
 
-    if (cpugrid == NULL || gpugrid == NULL)
+    if (cpugrid == nullptr || gpugrid == nullptr)
     {
         std::cerr << "Unable to allocate RAM on host!" << std::endl;
 
-        if (cpugrid != NULL)
+        if (cpugrid != nullptr)
         {
             free(cpugrid);
         }
 
-        if (gpugrid != NULL)
+        if (gpugrid != nullptr)
         {
             free(gpugrid);
         }
