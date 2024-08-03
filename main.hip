@@ -80,9 +80,12 @@ __global__ void mandelbrotGPU(int *grid, const size_t width, const size_t height
 
     size_t y = blockDim.y * blockIdx.y + threadIdx.y;
 
-    int t = escape_time(x, y, height, dx, dy, escape_value, max_iter);
+    if (x < width && y < height)
+    {
+        int t = escape_time(x, y, height, dx, dy, escape_value, max_iter);
 
-    grid[y * width + x] = t;
+        grid[y * width + x] = t;
+    }
 
     __syncthreads();
 }
