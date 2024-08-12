@@ -1,4 +1,5 @@
 ﻿#include <chrono>
+#include <cmath>
 #include <cstring>
 #include <iostream>
 #include <fstream>
@@ -271,9 +272,9 @@ int main(int argc, char **argv)
 
     const size_t THREADS_PER_BLOCK_Z = 1;
 
-    const size_t GRID_X = WIDTH / THREADS_PER_BLOCK_X;
+    const size_t GRID_X = std::ceil(WIDTH / double(THREADS_PER_BLOCK_X));
 
-    const size_t GRID_Y = HEIGHT / THREADS_PER_BLOCK_Y;
+    const size_t GRID_Y = std::ceil(HEIGHT / double(THREADS_PER_BLOCK_Y));
 
     dim3 dimGrid(GRID_X, GRID_Y);
 
